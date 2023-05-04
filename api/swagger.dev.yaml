@@ -1,0 +1,201 @@
+openapi: 3.0.3
+info:
+  version: 1.0.11
+  title: Pizza API ( develop )
+  description: Exposición api pizza asignaciones
+  
+servers:
+  - url: https://webserver.prolinesoftware.cl/pizza/api
+  
+  
+############################################################
+############################################################
+################                   #########################
+################ #EndPoints        #########################
+################                   #########################
+############################################################  
+tags:
+  - name: Auditores
+    description: Este EndPoint solo contiene el metodo para listar a los Auditores, este objeto se utiliza para construir el selector de auditores para las asignaciones. 
+    externalDocs:
+      description: Mas información...
+      url: https://cyberware.cl
+      
+  - name: Asignaciones
+    description: Acciones sobre modulo asignaciones, sirve para crear una asignacion de una Vinculación  Principal Nivel Contratista a un Auditor.
+    externalDocs:
+      description: Mas información...
+      url: https://cyberware.cl
+      
+      
+############################################################
+############################################################
+################                   #########################
+################ #Verbos y metodos #########################
+################                   #########################
+############################################################      
+paths:
+  /auditores:
+    get:
+      tags: #==># Referencia al EndPoint  
+        - Auditores
+      summary: Listado de auditores
+      description: Este metodo lista todos los auditores activos para construir un selector en la pantalla de contratistas en el modulo Asignaciones
+      operationId: listarAuditores
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Auditor'          
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Auditor'
+        '400':
+          description: Invalid ??
+        '404':
+          description: No hay Auditores Activos
+      #security:
+      #  - pizza_auth:
+      #      - write:asignaciones
+      #      - read:asignaciones
+      
+  /asignaciones:
+    post:
+      tags: #==># Referencia al EndPoint  
+        - Asignaciones
+      summary: Asignar una Vinculacion "Principal Nivel Contratista" a un Auditor
+      description: Crea un registro en la base de datos que relaciona una pvc con un auditor, este registro tiene estados dinamicos.
+      operationId: AsignarPvcAuditor
+      requestBody:
+        description: Crea una Asignacion pvc Auditor
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Asignacion'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Asignacion'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Asignacion'
+        required: true
+      responses:
+        '200':
+          description: Asignado Correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asignacion'          
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Asignacion'
+        '400':
+          description: PVC o idAuditor Invalido
+        '404':
+          description: PVC o idAuditor Inexistente
+        '405':
+          description: Excepcion de validacion
+      #security:
+      #  - pizza_auth:
+      #      - write:asignaciones
+      #      - read:asignaciones
+
+############################################################
+############################################################
+################                   #########################
+################ #COMPONENTES      #########################
+################                   #########################
+############################################################
+
+components:
+  schemas: ################ # ESQUEMAS      #########################
+  
+    Auditor:
+      type: object
+      properties:
+        meta: 
+          type: object
+          properties:
+            count:
+              type: integer
+              example: 3
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              idAuditor:
+                type: integer
+                format: int64
+                example: 10
+              Nombre:
+                type: string
+                example: Pedro Pablo Perez Pereira
+      xml:
+        name: auditor
+        
+    Asignacion: 
+      type: object
+      properties:
+        idAuditor:
+          type: integer
+          format: int64
+          example: 10
+        idVinculacion:
+          type: integer
+          format: int64
+          example: 12
+        Fecha:
+          type: string
+          format: date-time
+        Estado:
+          type: string
+          description: Estado de la Asignacion
+          example: pausado
+          enum:
+            - pausado
+            - pendiente
+            - en curso
+            - desasignada         # ! ?
+        Vigente:                 # ! ?
+          type: boolean
+      xml:
+        name: asignacion
+        
+  requestBodies: ################ # REQUESTS     #########################
+    Asignacion:
+      description: La Vinculacion del Contratista seleccionada ha sido Asignada correctamente al Auditor.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Asignacion'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/Asignacion'
+    AsignacionesArray:
+      description: Listado de Objetos de Asignaciones
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Asignacion'
+              
+  #securitySchemes: ################ # SECURITY LAYER     #########################
+  #  pizza_auth:
+  #    type: oauth2
+  #    flows:
+  #      implicit:
+  #        authorizationUrl: https://petstore3.swagger.io/oauth/authorize
+  #        scopes:
+  #          write:pets: modify pets in your account
+  #          read:pets: read your pets
+  #  api_key:
+  #    type: apiKey
+  #    name: api_key
+  #    in: header
+    
+            
+            
